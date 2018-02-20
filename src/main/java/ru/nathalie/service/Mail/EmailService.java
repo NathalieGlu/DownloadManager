@@ -1,4 +1,4 @@
-package ru.nathalie.service;
+package ru.nathalie.service.Mail;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

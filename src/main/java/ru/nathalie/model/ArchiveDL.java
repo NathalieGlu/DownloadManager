@@ -1,11 +1,11 @@
-package ru.nathalie.model.extensions;
+package ru.nathalie.model;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import ru.nathalie.service.Downloader;
+import ru.nathalie.service.downloader.Downloader;
 import ru.nathalie.config.AppProperties;
-import ru.nathalie.service.HashChecker;
+import ru.nathalie.service.Hash.HashChecker;
 
 import java.io.File;
 import java.net.URL;

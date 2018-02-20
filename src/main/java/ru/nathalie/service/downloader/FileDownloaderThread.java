@@ -1,11 +1,17 @@
-package ru.nathalie.service;
+package ru.nathalie.service.downloader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import ru.nathalie.config.AppProperties;
 import ru.nathalie.model.*;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +37,7 @@ public class FileDownloaderThread {
         this.otherTypeDL = otherTypeDL;
     }
 
-    public String parseExtensions(String source, String hash) {
+    public String parseExtensions(String source, String hash) throws FileAlreadyExistsException {
 
         log.info("Parsing extensions...");
 
@@ -45,6 +51,12 @@ public class FileDownloaderThread {
             return documentDL.downloadInThread(source, hash);
         } else {
             return otherTypeDL.downloadInThread(source, hash);
+        }
+    }
+
+    public void checkUrl(String url) throws ResourceNotFoundException, IOException {
+        if (((HttpURLConnection) new URL(url).openConnection()).getResponseCode() == HttpStatus.NOT_FOUND.value()) {
+            throw new ResourceNotFoundException();
         }
     }
 

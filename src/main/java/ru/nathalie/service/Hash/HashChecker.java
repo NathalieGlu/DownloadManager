@@ -1,4 +1,4 @@
-package ru.nathalie.service;
+package ru.nathalie.service.Hash;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;

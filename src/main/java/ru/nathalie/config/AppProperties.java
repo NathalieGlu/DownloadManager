@@ -11,6 +11,8 @@ import java.util.Map;
 @ConfigurationProperties
 public class AppProperties {
     private String filePath;
+    @Value("${spring.mail.username}")
+    private String senderEmail;
     @Value("${driver_class_name}")
     private String driverName;
     @Value("${url}")
@@ -53,5 +55,9 @@ public class AppProperties {
 
     public String getDbPassword() {
         return dbPassword;
+    }
+
+    public String getSenderEmail() {
+        return senderEmail;
     }
 }

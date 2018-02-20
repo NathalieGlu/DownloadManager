@@ -2,14 +2,22 @@ package ru.nathalie.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Controller;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import ru.nathalie.api.Database;
-import ru.nathalie.service.EmailService;
-import ru.nathalie.service.FileDownloaderThread;
+import ru.nathalie.service.Mail.EmailService;
+import ru.nathalie.service.downloader.FileDownloaderThread;
 
-@Controller
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.FileAlreadyExistsException;
+
+@RestController
 public class WebController {
     private FileDownloaderThread fileDownloaderThread;
     private Database database;
@@ -23,28 +31,51 @@ public class WebController {
         this.emailService = emailService;
     }
 
+    @ExceptionHandler(FileAlreadyExistsException.class)
+    public HttpStatus handleConflict() {
+        log.info(HttpStatus.CONFLICT.toString() + " " + HttpStatus.CONFLICT.getReasonPhrase());
+        return HttpStatus.CONFLICT;
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public HttpStatus handleUnauthorized() {
+        log.info(HttpStatus.UNAUTHORIZED.toString() + " " + HttpStatus.UNAUTHORIZED.getReasonPhrase());
+        return HttpStatus.UNAUTHORIZED;
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public HttpStatus handleNotFound() {
+        log.info(HttpStatus.NOT_FOUND.toString() + " " + HttpStatus.NOT_FOUND.getReasonPhrase());
+        return HttpStatus.NOT_FOUND;
+    }
+
+    @ExceptionHandler(MalformedURLException.class)
+    public HttpStatus handleMalformed() {
+        log.info(HttpStatus.BAD_REQUEST.toString() + " " + HttpStatus.BAD_REQUEST.getReasonPhrase());
+        return HttpStatus.BAD_REQUEST;
+    }
+
     @PostMapping("/download")
     public String downloadFile(@RequestParam(value = "source") String source,
                                @RequestParam(value = "encrypted") String encrypted,
                                @RequestParam(value = "email") String email,
-                               @RequestParam(value = "md5") String hash) {
+                               @RequestParam(value = "md5") String hash) throws FileAlreadyExistsException,
+            ResourceNotFoundException, MalformedURLException {
+
         try {
-            if (database.userExists(encrypted)) {
-                if (database.checkPassword(encrypted)) {
-                    database.update(encrypted, source);
-                    emailService.sendMessage(email, source);
-                    return "File successfully downloaded" + fileDownloaderThread.parseExtensions(source, hash);
-                } else {
-                    log.info("Wrong password!");
-                    return "Wrong password!";
-                }
-            } else {
-                log.info("User doesn't exist");
-                return "User doesn't exist";
-            }
-        } catch (Exception e) {
-            log.info("Exception while downloading file: ", e);
-            return String.format("Error while downloading: %s", e.getMessage());
+            fileDownloaderThread.checkUrl(source);
+        } catch (IOException e) {
+            throw new MalformedURLException();
+        }
+
+        if (database.checkPassword(encrypted)) {
+            String status = fileDownloaderThread.parseExtensions(source, hash);
+            database.update(encrypted, source);
+            emailService.sendMessage(email, source);
+            return status;
+        } else {
+            log.info("Bad credentials");
+            throw new BadCredentialsException("Bad credentials");
         }
     }
 }
