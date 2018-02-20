@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ru.nathalie.config.AppProperties;
-import ru.nathalie.model.extensions.ArchiveDL;
+import ru.nathalie.model.ArchiveDL;
 
 import java.io.FileInputStream;
 

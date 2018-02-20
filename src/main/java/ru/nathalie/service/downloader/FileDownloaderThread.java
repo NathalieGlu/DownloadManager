@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ru.nathalie.config.AppProperties;
-import ru.nathalie.model.extensions.*;
+import ru.nathalie.model.*;
 
 import java.util.List;
 import java.util.Map;
