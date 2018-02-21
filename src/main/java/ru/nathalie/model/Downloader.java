@@ -23,17 +23,19 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Component
+
 public class Downloader {
     private final AppProperties appProperties;
     private final ExecutorService executor;
     private final HashChecker hashChecker;
     private final Logger log = LoggerFactory.getLogger(Downloader.class.getName());
+    String type;
 
-    public Downloader(AppProperties appProperties, HashChecker hashChecker) {
+    public Downloader(AppProperties appProperties, HashChecker hashChecker, String type) {
         this.appProperties = appProperties;
         this.executor = Executors.newCachedThreadPool();
         this.hashChecker = hashChecker;
+        this.type = type;
     }
 
     public String downloadInThread(String source, String hash) throws FileAlreadyExistsException {
@@ -95,7 +97,7 @@ public class Downloader {
         }
     }
 
-    static class FileDownloadResponseHandler implements ResponseHandler<File> {
+    private static class FileDownloadResponseHandler implements ResponseHandler<File> {
         private final File target;
 
         private FileDownloadResponseHandler(File target) {
