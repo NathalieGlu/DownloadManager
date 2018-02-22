@@ -1,4 +1,4 @@
-package ru.nathalie.service.downloader;
+package ru.nathalie.model;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpResponse;
@@ -10,7 +10,6 @@ import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.stereotype.Component;
 import ru.nathalie.config.AppProperties;
 import ru.nathalie.service.Hash.HashChecker;
 
@@ -29,7 +28,7 @@ public class Downloader {
     private final ExecutorService executor;
     private final HashChecker hashChecker;
     private final Logger log = LoggerFactory.getLogger(Downloader.class.getName());
-    String type;
+    private String type;
 
     public Downloader(AppProperties appProperties, HashChecker hashChecker, String type) {
         this.appProperties = appProperties;
@@ -87,7 +86,7 @@ public class Downloader {
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setRedirectStrategy(new LaxRedirectStrategy())
                 .build()) {
-
+            log.info("Using {} type downloader", type);
             log.info("Downloading file, link: {}", url.getPath());
             httpclient.execute(new HttpGet(url.toURI()), new FileDownloadResponseHandler(dstFile));
             log.info("File successfully downloaded: {}", dstFile.getName());

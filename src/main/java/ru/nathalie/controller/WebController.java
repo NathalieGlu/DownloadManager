@@ -5,61 +5,65 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.nathalie.api.Database;
+import ru.nathalie.dao.SqlDaoFactory;
+import ru.nathalie.dao.UserDao;
 import ru.nathalie.service.Mail.EmailService;
 import ru.nathalie.service.downloader.FileDownloaderThread;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.FileAlreadyExistsException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 @RestController
-public class WebController {
+final public class WebController {
     private FileDownloaderThread fileDownloaderThread;
-    private Database database;
     private EmailService emailService;
+    private SqlDaoFactory sqlDaoFactory;
 
     private final Logger log = LoggerFactory.getLogger(WebController.class.getName());
 
-    public WebController(FileDownloaderThread fileDownloaderThread, Database database, EmailService emailService) {
+    public WebController(FileDownloaderThread fileDownloaderThread, EmailService emailService, SqlDaoFactory sqlDaoFactory) {
         this.fileDownloaderThread = fileDownloaderThread;
-        this.database = database;
         this.emailService = emailService;
+        this.sqlDaoFactory = sqlDaoFactory;
     }
 
     @ExceptionHandler(FileAlreadyExistsException.class)
-    public HttpStatus handleConflict() {
+    private HttpStatus handleConflict() {
         log.info(HttpStatus.CONFLICT.toString() + " " + HttpStatus.CONFLICT.getReasonPhrase());
         return HttpStatus.CONFLICT;
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public HttpStatus handleUnauthorized() {
+    private HttpStatus handleUnauthorized() {
         log.info(HttpStatus.UNAUTHORIZED.toString() + " " + HttpStatus.UNAUTHORIZED.getReasonPhrase());
         return HttpStatus.UNAUTHORIZED;
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public HttpStatus handleNotFound() {
+    private HttpStatus handleNotFound() {
         log.info(HttpStatus.NOT_FOUND.toString() + " " + HttpStatus.NOT_FOUND.getReasonPhrase());
         return HttpStatus.NOT_FOUND;
     }
 
     @ExceptionHandler(MalformedURLException.class)
-    public HttpStatus handleMalformed() {
+    private HttpStatus handleMalformed() {
         log.info(HttpStatus.BAD_REQUEST.toString() + " " + HttpStatus.BAD_REQUEST.getReasonPhrase());
         return HttpStatus.BAD_REQUEST;
     }
 
     @PostMapping("/download")
-    public String downloadFile(@RequestParam(value = "source") String source,
-                               @RequestParam(value = "encrypted") String encrypted,
-                               @RequestParam(value = "email") String email,
-                               @RequestParam(value = "md5") String hash) throws FileAlreadyExistsException,
+    private String downloadFile(Authentication authentication,
+                                @RequestParam(value = "source") String source,
+                                @RequestParam(value = "email") String email,
+                                @RequestParam(value = "md5") String hash) throws FileAlreadyExistsException,
             ResourceNotFoundException, MalformedURLException {
 
         try {
@@ -68,14 +72,15 @@ public class WebController {
             throw new MalformedURLException();
         }
 
-        if (database.checkPassword(encrypted)) {
+        try (Connection connection = sqlDaoFactory.getConnection()) {
+            UserDao dao = sqlDaoFactory.getDatabaseDao(connection);
             String status = fileDownloaderThread.parseExtensions(source, hash);
-            database.update(encrypted, source);
+            dao.update(authentication.getName(), source);
             emailService.sendMessage(email, source);
             return status;
-        } else {
-            log.info("Bad credentials");
-            throw new BadCredentialsException("Bad credentials");
+        } catch (SQLException e) {
+            log.info("Database exception: ", e);
+            return "Database exception";
         }
     }
 }

@@ -1,29 +1,20 @@
 package ru.nathalie.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @ConfigurationProperties
 public class AppProperties {
     private String filePath;
-    @Value("${spring.mail.username}")
     private String senderEmail;
-    @Value("${driver_class_name}")
-    private String driverName;
-    @Value("${url}")
+    private String driver;
     private String url;
-    @Value("${db_username}")
     private String dbUsername;
-    @Value("${db_password}")
     private String dbPassword;
-
-    @Value("#{${extensions}}")
-    private Map<String, String> extensions;
+    private List<String> types;
+    private Map<String, List<String>> extensions;
 
     public String getFilePath() {
         return filePath;
@@ -33,31 +24,59 @@ public class AppProperties {
         this.filePath = filePath;
     }
 
-    public Map<String, List<String>> getExtensions() {
-        Map<String, List<String>> extensionsList = new HashMap<>();
-        for (String key : extensions.keySet()) {
-            extensionsList.put(key, Arrays.asList(extensions.get(key).split(",")));
-        }
-        return extensionsList;
+    public String getSenderEmail() {
+        return senderEmail;
     }
 
-    public String getDriverName() {
-        return driverName;
+    public void setSenderEmail(String senderEmail) {
+        this.senderEmail = senderEmail;
+    }
+
+    public String getDriver() {
+        return driver;
+    }
+
+    public void setDriver(String driver) {
+        this.driver = driver;
     }
 
     public String getUrl() {
         return url;
     }
 
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     public String getDbUsername() {
         return dbUsername;
+    }
+
+    public void setDbUsername(String dbUsername) {
+        this.dbUsername = dbUsername;
     }
 
     public String getDbPassword() {
         return dbPassword;
     }
 
-    public String getSenderEmail() {
-        return senderEmail;
+    public void setDbPassword(String dbPassword) {
+        this.dbPassword = dbPassword;
+    }
+
+    public List<String> getTypes() {
+        return types;
+    }
+
+    public void setTypes(List<String> types) {
+        this.types = types;
+    }
+
+    public Map<String, List<String>> getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(Map<String, List<String>> extensions) {
+        this.extensions = extensions;
     }
 }

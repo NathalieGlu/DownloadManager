@@ -5,14 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ru.nathalie.config.AppProperties;
-import ru.nathalie.model.ArchiveDL;
 
 import java.io.FileInputStream;
 
 @Component
 public class HashChecker {
     private final AppProperties appProperties;
-    private final Logger log = LoggerFactory.getLogger(ArchiveDL.class.getName());
+    private final Logger log = LoggerFactory.getLogger(HashChecker.class.getName());
 
     public HashChecker(AppProperties appProperties) {
         this.appProperties = appProperties;

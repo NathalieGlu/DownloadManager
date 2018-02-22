@@ -26,7 +26,7 @@ public class SqlDaoFactory implements DaoFactory {
     public Connection getConnection() {
         Connection connect = null;
         try {
-            Class.forName(appProperties.getDriverName());
+            Class.forName(appProperties.getDriver());
             connect = DriverManager.getConnection(appProperties.getUrl(),
                     appProperties.getDbUsername(), appProperties.getDbPassword());
             log.info("Connected to driver");
