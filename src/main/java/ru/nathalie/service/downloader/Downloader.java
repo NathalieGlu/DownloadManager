@@ -1,4 +1,4 @@
-package ru.nathalie.model;
+package ru.nathalie.service;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpResponse;
